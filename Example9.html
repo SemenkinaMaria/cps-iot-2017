@@ -4,70 +4,65 @@
     
     <head>
         <title> Example 8 </title>
+
     </head>
 
     <body>
-    
+        
+        <canvas id="Red1" width="200" height="100" style="border:1px dashed #00c3c3"></canvas>
+ 
         <div id="print1"></div>
         
         <br>
-        
         <script type= "text/javascript" src = "/socket.io/socket.io.js"></script>
         <script type = "text/javascript">
         "use strict";
-        
+        var canvas, ctx; 
+        var numberOfLinesBeforeScroll = 10;
+        var linesPrintCounter = 0;
+        canvas = document.getElementById("Red1");
+        ctx=canvas.getContext ("2d");
+       // ctx.strokeStyle = "#000";
+       // ctx.fillStyle = "#00ff00";
+      //  ctx.stroke();
+     
         var divElement=document.getElementById("print1");
-        var divPrint1; // variable for div object where the values will be printed (logged)
-        class LogDiv
-        {
-            constructor(divId, numberOfLinesBeforeScroll) 
-            {
-                this.divElement = document.getElementById(divId); // name of div where values will be printed
-                this.numberOfLinesBeforeScroll = numberOfLinesBeforeScroll; // number of lines which print before scroll
-                this.linesPrintCounter = 0;
+        
+       function log(msg) 
+       {
+            var node=document.createElement("tr"); // we create the variable node as the a table row (tr)
+            var textnode=document.createTextNode(linesPrintCounter + " | " + msg); // we create element with the text adding the counter
+            node.appendChild(textnode); // adding text to "node", i.e. table row
+            divElement.insertBefore(node, divElement.childNodes[0]); // inserting into variable node
+            if (linesPrintCounter > numberOfLinesBeforeScroll-1)
+            { // if the lines are more than limit -> start with scroll
+                divElement.removeChild(divElement.childNodes[numberOfLinesBeforeScroll]); // we remove the oldest printout
             }
-
-            log(msg) 
-            { // function for printout of the messages with scroll functionality
-                var node=document.createElement("tr"); // we create the variable node as the a table row (tr)
-                var textnode=document.createTextNode(this.linesPrintCounter + " | " + msg); // we create element with the text adding the counter
-                node.appendChild(textnode); // adding text to "node", i.e. table row
-                this.divElement.insertBefore(node, this.divElement.childNodes[0]); // inserting into variable node
-                if (this.linesPrintCounter > this.numberOfLinesBeforeScroll-1) 
-                { // if the lines are more than limit -> start with scroll
-                    this.divElement.removeChild(this.divElement.childNodes[this.numberOfLinesBeforeScroll]); // we remove the oldest printout
-                }
-                this.linesPrintCounter++; // increasing the number of printouts
-            }
+            linesPrintCounter++; // increasing the number of printouts
         }
-         var clientIpAddress;
-  
-        clientIpAddress = socket.request.socket.remoteAddress;
-      //  sockets.remoteAddress;
-        socket.emit("messageToClient", "socket.request.socket.remoteAddress: " + socket.request.socket.remoteAddress);
-        // ::ffff:192.168.254.1 is ipv6 address
-        // in Chrome we enter: http://[::ffff:192.168.254.131]:8080 -> http://[::ffff:c0a8:fe83]:8080
-        // extract ipv4 address ->
-        var idx = clientIpAddress.lastIndexOf(':');
-        var address4;
-        if (~idx && ~clientIpAddress.indexOf('.')) address4 = clientIpAddress.slice(idx + 1);
-        socket.emit("messageToClient", "ipv4 address: " + address4);
-        socket.emit("messageToClient", "socket.request.connection._peername.family: " + socket.request.connection._peername.family);
-        socket.emit("messageToClient", "socket.request.connection._peername.port: " + socket.request.connection._peername.port);
-        socket.emit("messageToClient", "socket.id: " + socket.id);  
+         
+         
         var socket=io.connect ("172.16.22.133:8080");
-        divPrint1 = new LogDiv("print1", 10);
-      //  divPrint1.log(msg); // add msg to div
-
-        //var socket=io.connect ("172.16.22.133:8080");
+        
+        
         
         socket.on ("messageToClient", function (msg)
         {
-             divPrint1.log(msg); // add msg
+             log(msg); // add msg
+             if(msg == 0)
+             {
+                 ctx.fillStyle="green";
+                 ctx.fillRect(0,0, 200, 100);
+             }
+             if(msg == 1)
+             {
+                 ctx.fillStyle="red";
+                 ctx.fillRect(0,0, 200, 100);
+             }
         });
         socket.on("disconnect", function()
         {
-            divPrint1.log("Disconnected from the server"); // we print status of disconn. to div
+            log("Disconnected from the server"); // we print status of disconn. to div
         });
 
 

@@ -37,13 +37,35 @@ board.on ("ready", function()
     {
         console.log ("Socket id:" +socket.id);
         socket.emit ("messageToClient", "Srv connected, board OK");
+           // print of IP adresses, ports, ip family
+    clientIpAddress = socket.request.socket.remoteAddress;
+    io.sockets.emit("messageToClient", "socket.request.socket.remoteAddress: " + socket.request.socket.remoteAddress);
+    // ::ffff:192.168.254.1 is ipv6 address
+    // in Chrome we enter: http://[::ffff:192.168.254.131]:8080 -> http://[::ffff:c0a8:fe83]:8080
+    io.sockets.emit("messageToClient", "socket.request.connection._peername.family: " + socket.request.connection._peername.family);
+    io.sockets.emit("messageToClient", "socket.request.connection._peername.port: " + socket.request.connection._peername.port);
+    io.sockets.emit("messageToClient", "socket.id: " + socket.id);
+    // extract ipv4 address ->
+    var idx = clientIpAddress.lastIndexOf(':');
+    var address4;
+    if (~idx && ~clientIpAddress.indexOf('.')) address4 = clientIpAddress.slice(idx + 1);
+    io.sockets.emit("messageToClient", "ipv4 address: " + socket.request.socket.remoteAddress);
+    io.sockets.emit("messageToClient", "Client data ----------------------------->");
         sendValueViaSocket=function (value)
         {
             io.sockets.emit("messageToClient", value);
         }
     }); // end of sockets.on connection
     
-    
+          
+      //    if(msg==1)
+         //    {
+//ctx.fillStyle = "#00ff00";
+         //    }
+        //    else
+       //     {
+       //        ctx.fillStyle = "#ff0000";
+        //    }
     var timeout = false;
     var last_value=0;
     var last_sent=1;
@@ -64,41 +86,27 @@ board.on ("ready", function()
                     console.log("LED OFF");
                      board.digitalWrite(13, board.LOW);
                      console.log("value = 0, LED OFF");
+                    // ctx.fillStyle = "#ff0000";
                  }
                 else if (value == 1) 
                 {
                         console.log("LED ON");
                      board.digitalWrite(13, board.HIGH);
                      console.log("value = 1, LED lit");
+                    //ctx.fillStyle = "#00ff00";
                  }
-                io.sockets.emit("messageToClient", "Value = " + value);
+                io.sockets.emit("messageToClient", value);
              }
 
             last_sent = last_value;
-        }, 1000); // execute after 50ms
-         
+        }, 50); // execute after 50ms
+                
         last_value = value; // this is read from pin 2 many times per s
                 
     }); // end board.digitalRead on pin 2
     
-    // print of IP adresses, ports, ip family
- /*   var clientIpAddress;
-    var temp=io.sockets;
-    clientIpAddress = io.sockets.request.remoteAddress();
-  //  sockets.remoteAddress;
-    io.sockets.emit("messageToClient", "socket.request.socket.remoteAddress: " + socket.request.socket.remoteAddress);
-    // ::ffff:192.168.254.1 is ipv6 address
-    // in Chrome we enter: http://[::ffff:192.168.254.131]:8080 -> http://[::ffff:c0a8:fe83]:8080
-    // extract ipv4 address ->
-    var idx = clientIpAddress.lastIndexOf(':');
-    var address4;
-    if (~idx && ~clientIpAddress.indexOf('.')) address4 = clientIpAddress.slice(idx + 1);
-    io.sockets.emit("messageToClient", "ipv4 address: " + address4);
-    io.sockets.emit("messageToClient", "socket.request.connection._peername.family: " + socket.request.connection._peername.family);
-    io.sockets.emit("messageToClient", "socket.request.connection._peername.port: " + socket.request.connection._peername.port);
-    io.sockets.emit("messageToClient", "socket.id: " + socket.id);*/
-    
 }); // end of board.on read
+
 
 
 

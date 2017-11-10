@@ -72,14 +72,12 @@ board.on ("ready", function()
                     console.log("LED OFF");
                      board.digitalWrite(13, board.LOW);
                      console.log("value = 0, LED OFF");
-                    // ctx.fillStyle = "#ff0000";
                  }
                 else if (value == 1) 
                 {
                         console.log("LED ON");
                      board.digitalWrite(13, board.HIGH);
                      console.log("value = 1, LED lit");
-                    //ctx.fillStyle = "#00ff00";
                  }
                 io.sockets.emit("messageToClient", value);
              }
