@@ -1,0 +1,77 @@
+<!doctype html>
+<meta charset=utf8>
+<html>
+    
+    <head>
+        <title> Example 8 </title>
+
+    </head>
+
+    <body>
+        
+        DC motor control with buttons
+        <p></p>
+        PWM: <input id="pwm" value=100 />    
+        <button id="buttonSendPWM" onClick="sendPWM()">Send PWM</button>
+        <button id="buttonLeft" onClick="left()">Left</button>
+        <button id="buttonRight" onClick="right()">Right</button>
+        <button id="buttonStop" onClick="stop()">STOP</button>
+
+        <div id="print1"></div>
+        
+        <br>
+        <script type= "text/javascript" src = "/socket.io/socket.io.js"></script>
+        <script type = "text/javascript">
+        "use strict";
+
+        var numberOfLinesBeforeScroll = 10;
+        var linesPrintCounter = 0;
+        var valuePWM=100;
+        var divElement=document.getElementById("print1");
+        
+       function log(msg) 
+       {
+            var node=document.createElement("tr"); // we create the variable node as the a table row (tr)
+            var textnode=document.createTextNode(linesPrintCounter + " | " + msg); // we create element with the text adding the counter
+            node.appendChild(textnode); // adding text to "node", i.e. table row
+            divElement.insertBefore(node, divElement.childNodes[0]); // inserting into variable node
+            if (linesPrintCounter > numberOfLinesBeforeScroll-1)
+            { // if the lines are more than limit -> start with scroll
+                divElement.removeChild(divElement.childNodes[numberOfLinesBeforeScroll]); // we remove the oldest printout
+            }
+            linesPrintCounter++; // increasing the number of printouts
+        }
+         
+         
+        var socket=io.connect ("172.16.22.133:8080");
+        function sendPWM ()
+        {
+            valuePWM = document.getElementById("pwm").value;
+            socket.emit("sendPWM", valuePWM);
+        }
+        
+        function left () {
+            socket.emit("left", {"AIN1": 0, "AIN2": 1});
+        }
+        
+        function right () {
+            socket.emit("right", {"AIN1": 1, "AIN2": 0});
+        }
+        
+        function stop () {
+            socket.emit("stop", 0);
+        }
+        
+        socket.on('messageToClient', function(msg) { // when we receive the message
+            log(msg); // we print it to div
+        });
+        
+        socket.on('disconnect', function() { // on disconnect
+            log("Disconnected from server"); // we print the status to div
+        });
+        
+        </script>
+    
+    </body>
+    
+</html>
