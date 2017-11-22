@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Andrej Škraba  2017 -->
+
+<html>
+<head>
+<title>Example with graph</title>    
+</head>
+    
+<body>
+Example with graph
+<br>
+<canvas id="canvas1" width="200" height="100" style="border:1px dashed #00c3c3"></canvas>
+
+<script type="text/javascript">
+"use strict"; // enable classes
+    
+var graph1; // variable for first graph object
+
+class Graph {
+    constructor (canvasId, maxGraphX, maxGraphY) {
+        this.maxGraphX = maxGraphX; // same as canvas width
+        this.maxGraphY = maxGraphY; // variable for maximum on y axis
+
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext("2d");
+        this.ctx.strokeStyle = "#ff0000"; // determine red color of the graph
+        
+        this.canvasWidth = this.canvas.width; // mind capital W at Width
+        this.canvasHeight = this.canvas.height; // mind capital H at Height
+
+        this.x = new Array(); // create new Array x
+        this.y = new Array(); // create new Array y
+
+        // fill x vector; vector y is filled in real-time
+        for (var i=0; i<this.maxGraphX+1; i++) {
+            this.x[i] = i; // values for the x coordinate; 0, 1, 2, ...
+        }
+    }
+
+    addValueOrCutAndAdd(yValue) {
+        if (this.y.length == this.maxGraphX+1) { // if canvas size is 10x10 we have 11x11 points (starting with 0 and ending with 10)
+            this.y.splice(0, 1); // on the position 0 in the vector y we cut one value
+            this.y[this.maxGraphX] = yValue; // at the end of the array the new value is added
+        }
+        else {
+            this.y.push(yValue); // if the array is not yet full, we push the new value in the array
+        }
+    }
+
+    plot(yValue) {
+        this.addValueOrCutAndAdd(yValue);
+        this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight); // clear the canvas
+        this.ctx.beginPath(); // for the start of the line
+    
+        for (var i=0; i<this.y.length; i++) {
+            this.ctx.lineTo(this.x[i]/this.maxGraphX*this.canvasWidth, (this.canvasHeight - (this.y[i]/this.maxGraphY) * this.canvasHeight)); // for y values we multiply with canas height, eg. 0.25 * 100 = 25
+        }
+    
+        this.ctx.stroke();
+    }    
+    
+}    
+    
+function loop() {
+    
+    graph1.plot(Math.random() * 1000);
+    var timerVar = setTimeout(loop, 10); // repeat function loop on 10ms
+}    
+    
+graph1 = new Graph("canvas1", 200, 1000);
+    
+loop();
+    
+</script>
+
+</body>    
+    
+</html>
