@@ -1,0 +1,73 @@
+<!doctype html>
+<meta charset=utf8>
+<html>
+    
+    <head>
+        <title> Example 8 </title>
+
+    </head>
+
+    <body>
+        
+        <canvas id="Red1" width="200" height="100" style="border:1px dashed #00c3c3"></canvas>
+ 
+        <div id="print1"></div>
+        
+        <br>
+        <script type= "text/javascript" src = "/socket.io/socket.io.js"></script>
+        <script type = "text/javascript">
+        "use strict";
+        var canvas, ctx; 
+        var numberOfLinesBeforeScroll = 10;
+        var linesPrintCounter = 0;
+        canvas = document.getElementById("Red1");
+        ctx=canvas.getContext ("2d");
+       // ctx.strokeStyle = "#000";
+       // ctx.fillStyle = "#00ff00";
+      //  ctx.stroke();
+     
+        var divElement=document.getElementById("print1");
+        
+       function log(msg) 
+       {
+            var node=document.createElement("tr"); // we create the variable node as the a table row (tr)
+            var textnode=document.createTextNode(linesPrintCounter + " | " + msg); // we create element with the text adding the counter
+            node.appendChild(textnode); // adding text to "node", i.e. table row
+            divElement.insertBefore(node, divElement.childNodes[0]); // inserting into variable node
+            if (linesPrintCounter > numberOfLinesBeforeScroll-1)
+            { // if the lines are more than limit -> start with scroll
+                divElement.removeChild(divElement.childNodes[numberOfLinesBeforeScroll]); // we remove the oldest printout
+            }
+            linesPrintCounter++; // increasing the number of printouts
+        }
+         
+         
+        var socket=io.connect ("172.16.22.133:8080");
+        
+        
+        
+        socket.on ("messageToClient", function (msg)
+        {
+             log(msg); // add msg
+             if(msg == 0)
+             {
+                 ctx.fillStyle="green";
+                 ctx.fillRect(0,0, 200, 100);
+             }
+             if(msg == 1)
+             {
+                 ctx.fillStyle="red";
+                 ctx.fillRect(0,0, 200, 100);
+             }
+        });
+        socket.on("disconnect", function()
+        {
+            log("Disconnected from the server"); // we print status of disconn. to div
+        });
+
+
+        </script>
+    
+    </body>
+    
+</html>

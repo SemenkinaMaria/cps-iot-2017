@@ -1,0 +1,43 @@
+<!doctype html>
+<meta charset=utf8>
+<html>
+    
+    <head>
+        <title> Example 7 </title>
+    </head>
+
+    <body>
+    
+        <div id="print1"></div>
+        
+        <br>
+        
+        <script type= "text/javascript" src = "/socket.io/socket.io.js"></script>
+        <script type = "text/javascript">
+        "use strict";
+        
+        var divElement=document.getElementById("print1");
+        
+        function log (msg) 
+        {
+            divElement.innerHTML += "<div>" + msg + "</div>"; // we print it to div
+        }
+         
+         
+        var socket=io.connect ("172.16.22.133:8080");
+        
+        socket.on ("messageToClient", function (msg)
+        {
+             log(msg); // add msg
+        });
+        socket.on("disconnect", function()
+        {
+            log("Disconnected from the server"); // we print status of disconn. to div
+        });
+
+
+        </script>
+    
+    </body>
+    
+</html>

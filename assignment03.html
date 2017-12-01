@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<meta charset = utf8>
+<html>
+
+<head>
+    <title>Example with buttons</title>
+</head>
+
+<body>
+
+<button id="buttonOn" style="width: 80px;" onClick="on()">On</button>
+<button id="buttonOff" style="width: 80px;" onClick="off()">Off</button>
+<br>
+<button id="buttonBlinkOn" style="width: 80px;" onClick="blinkOn()">B On</button>
+<button id="buttonBlinkOff" style="width: 80px;" onClick="blinkOff()">B Off</button>
+
+<br>
+
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+
+<script type="text/javascript">
+
+var socket = io.connect("172.16.22.228:8080"); // connect via socket
+
+function on () {
+    socket.emit("commandToArduino", 1);
+}
+
+function off () {
+    socket.emit("commandToArduino", 0);
+}
+
+function blinkOn () {
+    socket.emit("blinkOn");
+}
+
+function blinkOff () {
+    socket.emit("blinkOff");
+}
+    
+</script>
+    
+</body>
+    
+</html>

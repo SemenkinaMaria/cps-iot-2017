@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<meta charset=utf-8>
+
+<!-- ********************************************************************** -->        
+<!-- University of Maribor ************************************************ -->
+<!-- Faculty of Organizational Sciences *********************************** -->
+<!-- Cybernetics & Decision Support Systems Laboratory ******************** -->
+<!-- Andrej Škraba ******************************************************** -->
+<!-- ********************************************************************** -->        
+
+<html>
+<head>
+    <title>Govorno upravljanje</title>
+</head>
+
+<style>
+body { font-family: courier}
+</style>        
+    
+<div id="speech" style="border-style:dotted; border-color:#c3c3c3; padding:10px; font-size:24px; font-color:#00ff00; width:477px; text-align:center;">
+Press button START for speech input.
+</div>
+    
+<div class="right">
+  <button id="start_button" onclick="startButton(event)">Start</button>
+</div>
+<div id="results">
+  <span id="final_span"></span>
+  <span id="interim_span"></span>
+  <p>
+</div>    
+
+<!-- ******************************************************************************************** -->
+<!-- *** Button switchboard ********************************************************************* -->
+<!-- ******************************************************************************************** -->                
+<br></br>
+
+<button id="buttonLeft" onClick="left()" style="height: 162px; width: 162px; font-size:35px;">GO</button>
+<button id="buttonCenter" onClick="center()" style="height: 162px; width: 162px; font-size:35px;">STOP</button>
+<button id="buttonRight" onClick="right()" style="height: 162px; width: 162px; font-size:35px;">BACK</button>    
+
+<br></br>
+</p>    
+<!-- ******************************************************************************************** -->
+<!-- ******************************************************************************************** -->
+<!-- ******************************************************************************************** -->    
+
+<body>
+    
+<div class = "izpisRazred" id="izpis"></div>
+
+<br>
+
+<div id="output"></div>
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+    
+var output = document.getElementById('izpis');
+var stevec = 0;
+
+function ReplaceContentInContainer(id,content) { // za zamenjavo vsebine div-a
+    var container = document.getElementById(id);
+    container.innerHTML = content;
+}    
+    
+// JavaScript, ki bo uporabljen na strani klienta zapišemo tu
+var socket = io.connect("172.16.22.133:8080"); 
+
+var output    = document.getElementById('output');
+
+function left () {
+  socket.emit("left", 1);
+}
+
+function center () {
+  socket.emit("center", 1);
+}
+
+function right () {
+  socket.emit("right", 1);
+}
+    
+// *****************************************************************************
+// Code for speech API START
+// *****************************************************************************
+
+var final_transcript = '';
+var recognizing = false;
+var ignore_onend;
+var start_timestamp;
+if (!('webkitSpeechRecognition' in window)) {
+  upgrade();
+} else {
+  var recognition = new webkitSpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onstart = function() {
+    recognizing = true;
+    document.getElementById("start_button").innerText = "Speak to microphone";
+  };
+
+  recognition.onerror = function(event) {
+    if (event.error == 'no-speech') {
+      document.getElementById("start_button").innerText = "Start Microphone";
+      ReplaceContentInContainer("speech", "Speech not present.");
+      ignore_onend = true;
+    }
+    if (event.error == 'audio-capture') {
+      document.getElementById("start_button").innerText = "Start Microphone";
+      ReplaceContentInContainer("speech", "No microphone!");
+      ignore_onend = true;
+    }
+    if (event.error == 'not-allowed') {
+      if (event.timeStamp - start_timestamp < 100) {
+        ReplaceContentInContainer("speech", "Speech blocked / disabled!");
+      } else {
+        ReplaceContentInContainer("speech", "Speech input rejected.");
+      }
+      ignore_onend = true;
+    }
+  };
+  
+  recognition.onend = function() { // start the recognition once again
+    ReplaceContentInContainer("speech", "New Restart!");
+    document.getElementById("start_button").innerText = "Microphone disabled";
+    recognition.start();
+};
+
+
+var final_trs;
+
+//setTimeout(function(){recognition.stop(); recognition.start(); log("ZAGNANA razpoznava");}, 3000); // po treh sekundah ustavimo in poženemo razpoznavo
+//setTimeout(function(){recognition.stop(); log("STOP");}, 10000);
+//setTimeout(function(){recognition.stop(); log("ZAGNANA razpoznava po 12s");}, 12000);
+
+  recognition.onresult = function(event) {
+    var interim_transcript = '';
+    // interim_transcript += event.results[i][0].transcript;
+    for (var i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        final_transcript += event.results[i][0].transcript;
+        final_trs = event.results[i][0].transcript;
+    interim_transcript += event.results[i][0].transcript;
+        //tempx = event.results[i][0].transcript; 
+        //log(event.results[i][0].transcript);
+      } else {
+        interim_transcript += event.results[i][0].transcript;
+      }
+    } 
+
+    ReplaceContentInContainer("speech", interim_transcript);
+
+        // *********************************************************************
+        // STOP
+        // *********************************************************************    
+        if(interim_transcript == "stop" || interim_transcript == " stop" || interim_transcript == "break" || interim_transcript == " break" || interim_transcript == "house" || interim_transcript == "how's" || interim_transcript == " how's" || interim_transcript == " house" || interim_transcript == "Red Sox" || interim_transcript == " Red Sox")
+        {
+            socket.emit("center", 1);
+        };
+        // *********************************************************************
+        // Go
+        // *********************************************************************
+        if(interim_transcript == "go" || interim_transcript == " go" || interim_transcript == "forward" || interim_transcript == " forward" || interim_transcript == "start" || interim_transcript == " start") // ker napravimo premor med govorom moramo upoštevati tudi presledek+1, t.j. " 1"
+        {
+            socket.emit("left", 1);
+        };
+        // *********************************************************************
+        // Back
+        // *********************************************************************
+        if(interim_transcript == "back" || interim_transcript == " back" || interim_transcript == "beck" || interim_transcript == " beck" || interim_transcript == "Beck" || interim_transcript == " Beck") // ker napravimo premor med govorom moramo upoštevati tudi presledek+1, t.j. " 1"
+        {
+            socket.emit("right", 1);
+        };
+
+  }; // End of recognition.on.result
+}
+
+function upgrade() {
+    ReplaceContentInContainer("speech", 'You have to upgrade Chrome to version 25 of higher');
+}
+
+var two_line = /\n\n/g;
+var one_line = /\n/g;
+function linebreak(s) {
+  return s.replace(two_line, '<p></p>').replace(one_line, '<br>');
+}
+
+function startButton(event) {
+  if (recognizing) {
+    recognition.stop();
+    return;
+  }
+  final_transcript = '';
+  recognition.lang = "en-US"; // determine language
+  recognition.start();
+  ignore_onend = false;
+  final_span.innerHTML = '';
+  interim_span.innerHTML = '';
+  document.getElementById("start_button").innerText = "Microphone enabled";
+  ReplaceContentInContainer("speech", "Please talk!");
+  start_timestamp = event.timeStamp;
+}
+// *****************************************************************************
+// Speech API code END
+// *****************************************************************************    
+    
+</script>
+</body>
+</html>
+
+
+
